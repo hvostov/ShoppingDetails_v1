@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
         tableWidget->sizePolicy().setHorizontalPolicy(QSizePolicy::Expanding);
         tableWidget->sizePolicy().setVerticalPolicy(QSizePolicy::Expanding);
         tableWidget->setStyleSheet("border: 1px solid black");
-        //tableWidget->installEventFilter()
+        tableWidget->installEventFilter(this);
         // QEvent* e = new QKeyEvent(QEvent::Type::KeyPress, Qt::Key_V, Qt::ControlModifier);
         // tableWidget->cellWidget(1,1)->eventFilter(tableWidget, e);
 
@@ -171,26 +171,44 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {}
 
-// bool MainWindow::eventFilter(QObject * target, QEvent* e) {
-//     if(e->type() == QEvent::KeyPress) {
-//         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(e);
-//         if(keyEvent->key() == Qt::Key_V && keyEvent->modifiers() == Qt::ControlModifier) {
+bool MainWindow::eventFilter(QObject * target, QEvent* e) {
+    if(e->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(e);
+        if(keyEvent->key() == Qt::Key_V && keyEvent->modifiers() == Qt::ControlModifier) {
+            int row = tableWidget->currentRow();
+            int col = tableWidget->currentColumn();
+            if(col == 2) {
+                addPic(row, col);
+                return true;
+            }
+        }
+        if(keyEvent->key() == Qt::Key_Delete) {
+            QItemSelectionModel *selectionModel = tableWidget->selectionModel();
+            QModelIndexList selectedRows = selectionModel->selectedRows();
+            if (selectedRows.size() > 0) {
+                for(int i = 0; i < selectedRows.size(); ++i) {
+                    tableWidget->removeRow(selectedRows.at(i).row()-i);
+                    QThread::msleep(100);
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
-//         }
-//     }
-// }
-
-    // void MainWindow::addPic(int row, int col/*, QTableWidget& table*/) {
-    //     const QClipboard *clipboard = QApplication::clipboard();
-    //     const QMimeData *mimeData = clipboard->mimeData();
-    //     QLabel *label = new QLabel(this);
-    //     label->setPixmap(qvariant_cast<QPixmap>(mimeData->imageData()));
-    //     label->setScaledContents(true);
-    //     if(row > 49) {
-    //         tableWidget->insertRow( tableWidget->rowCount() );
-    //     }
-    //     tableWidget->setCellWidget(row,col, label);
-    // }
+    void MainWindow::addPic(int i, int col/*, QTableWidget& table*/) {
+        const QClipboard *clipboard = QApplication::clipboard();
+        const QMimeData *mimeData = clipboard->mimeData();
+        QLabel *label = new QLabel(this);
+        label->setPixmap(qvariant_cast<QPixmap>(mimeData->imageData()));
+        label->setScaledContents(true);
+        int row = shapes_count + i;
+        if(row > 49) {
+            tableWidget->insertRow( tableWidget->rowCount() );
+        }
+        tableWidget->setCellWidget(row,col, label);
+    }
 
 void MainWindow::on_loadDataButton_clicked()
 {
@@ -211,17 +229,17 @@ void MainWindow::on_loadDataButton_clicked()
 void MainWindow::fillImage(int i, int cnt)
 {
     QMutexLocker locker(mutex);
-    //statusLabel->setText("Загружаем картинки");
-    const QClipboard *clipboard = QApplication::clipboard();
-    const QMimeData *mimeData = clipboard->mimeData();
-    QLabel *label = new QLabel(this);
-    label->setPixmap(qvariant_cast<QPixmap>(mimeData->imageData()));
-    label->setScaledContents(true);
-    int row = shapes_count + i;
-    if(row > 49) {
-        tableWidget->insertRow( tableWidget->rowCount() );
-    }
-    tableWidget->setCellWidget(row,2, label);
+    // const QClipboard *clipboard = QApplication::clipboard();
+    // const QMimeData *mimeData = clipboard->mimeData();
+    // QLabel *label = new QLabel(this);
+    // label->setPixmap(qvariant_cast<QPixmap>(mimeData->imageData()));
+    // label->setScaledContents(true);
+    // int row = shapes_count + i;
+    // if(row > 49) {
+    //     tableWidget->insertRow( tableWidget->rowCount() );
+    // }
+    // tableWidget->setCellWidget(row,2, label);
+    addPic(i, 2);
 
     onePercent = 50.0/static_cast<double>(cnt);
     progressValue += onePercent;

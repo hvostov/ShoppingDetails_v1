@@ -30,8 +30,8 @@ signals:
     void havePath(QString str);
 
 private slots:
-    //void addPic(int row, int col/*, QTableWidget& table*/);
-    //bool eventFilter(QObject * target, QEvent* e) override;
+    void addPic(int row, int col/*, QTableWidget& table*/);
+    bool eventFilter(QObject * target, QEvent* e) override;
     void on_loadDataButton_clicked();
     void fillImage(int i, int cnt);
     void fillCell(QString str, int i, int j);
